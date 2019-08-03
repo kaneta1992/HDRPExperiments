@@ -767,7 +767,7 @@
         Pass
         {
             Name "Outline"
-            Tags { "LightMode" = "Outline" } // This will be only for opaque object based on the RenderQueue index
+            Tags { "LightMode" = "Outline" }
 
             Cull Front
             ZTest On
@@ -783,41 +783,17 @@
 
             HLSLPROGRAM
 
-            #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
-            // Setup DECALS_OFF so the shader stripper can remove variants
-            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
-            #pragma multi_compile _ LIGHT_LAYERS
-
-        #ifndef DEBUG_DISPLAY
-            // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
-            // Don't do it with debug display mode as it is possible there is no depth prepass in this case
-            #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
-        #endif
-
-            #define SHADERPASS SHADERPASS_GBUFFER
-            #ifdef DEBUG_DISPLAY
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-            #endif
+            #define SHADERPASS SHADERPASS_FORWARD
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
-
-            #if SHADERPASS != SHADERPASS_GBUFFER
-            #error SHADERPASS_is_not_correctly_define
-            #endif
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
             PackedVaryingsType Vert(AttributesMesh inputMesh)
             {
                 VaryingsType varyingsType;
-                float3 positionRWS = TransformObjectToWorld(inputMesh.positionOS);
-                float4 p = mul(_NonJitteredViewProjMatrix, float4(positionRWS, 1.0)).xyzw;
                 inputMesh.positionOS += inputMesh.normalOS * 0.02;
                 varyingsType.vmesh = VertMesh(inputMesh);
                 return PackVaryingsType(varyingsType);
@@ -840,18 +816,6 @@
                         out float4 outColor : SV_Target
                         )
             {
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
-                FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
-
-                // input.positionSS is SV_Position
-                PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
-
-            #ifdef VARYINGS_NEED_POSITION_WS
-                float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
-            #else
-                // Unused
-                float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
-            #endif
                 outColor = float4(0.0, 0.0, 0.0, 1.0);
             }
 

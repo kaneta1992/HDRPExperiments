@@ -773,14 +773,6 @@
             ZTest On
             ZWrite On
 
-            Stencil
-            {
-                WriteMask [_StencilWriteMask]
-                Ref [_StencilRef]
-                Comp Always
-                Pass Replace
-            }
-
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_FORWARD

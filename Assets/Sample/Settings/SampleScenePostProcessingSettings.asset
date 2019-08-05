@@ -16,7 +16,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   depthBufferThickness:
     m_OverrideState: 1
-    m_Value: 0.5
+    m_Value: 0.536
     min: 0
     max: 1
   screenFadeDistance:
@@ -39,7 +39,7 @@ MonoBehaviour:
     m_Value: 1
   rayMaxIterations:
     m_OverrideState: 1
-    m_Value: 128
+    m_Value: 1024
   enableRaytracing:
     m_OverrideState: 1
     m_Value: 0
@@ -120,6 +120,7 @@ MonoBehaviour:
   - {fileID: -2109818796249167647}
   - {fileID: 5964386785309194121}
   - {fileID: -3157523781269736134}
+  - {fileID: 8731183378475846522}
 --- !u!114 &396278178000043239
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -232,17 +233,17 @@ MonoBehaviour:
   m_AdvancedMode: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 1.4
+    m_Value: 1.6
     min: 0
     max: 4
   stepCount:
     m_OverrideState: 1
-    m_Value: 32
+    m_Value: 16
     min: 2
     max: 32
   radius:
     m_OverrideState: 1
-    m_Value: 3.31
+    m_Value: 2.5
     min: 0.25
     max: 5
   fullResolution:
@@ -250,12 +251,12 @@ MonoBehaviour:
     m_Value: 1
   maximumRadiusInPixels:
     m_OverrideState: 1
-    m_Value: 225
+    m_Value: 128
     min: 16
     max: 256
   directLightingStrength:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.479
     min: 0
     max: 1
   enableRaytracing:
@@ -307,7 +308,7 @@ MonoBehaviour:
     m_Value: {x: 0.5, y: 0.5}
   intensity:
     m_OverrideState: 1
-    m_Value: 0.25
+    m_Value: 0.35
     min: 0
     max: 1
   smoothness:
@@ -331,3 +332,66 @@ MonoBehaviour:
     m_Value: 1
     min: 0
     max: 1
+--- !u!114 &8731183378475846522
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aaa3b8214f75b354e9ba2caadd022259, type: 3}
+  m_Name: DepthOfField
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  focusMode:
+    m_OverrideState: 1
+    m_Value: 2
+  focusDistance:
+    m_OverrideState: 1
+    m_Value: 0.51
+    min: 0.1
+  nearFocusStart:
+    m_OverrideState: 1
+    m_Value: 0
+    min: 0
+  nearFocusEnd:
+    m_OverrideState: 1
+    m_Value: 0.4
+    min: 0
+  farFocusStart:
+    m_OverrideState: 1
+    m_Value: 0.9
+    min: 0
+  farFocusEnd:
+    m_OverrideState: 1
+    m_Value: 2
+    min: 0
+  nearSampleCount:
+    m_OverrideState: 0
+    m_Value: 5
+    min: 3
+    max: 8
+  nearMaxBlur:
+    m_OverrideState: 0
+    m_Value: 4
+    min: 0
+    max: 8
+  farSampleCount:
+    m_OverrideState: 0
+    m_Value: 7
+    min: 3
+    max: 16
+  farMaxBlur:
+    m_OverrideState: 0
+    m_Value: 8
+    min: 0
+    max: 16
+  highQualityFiltering:
+    m_OverrideState: 0
+    m_Value: 1
+  resolution:
+    m_OverrideState: 0
+    m_Value: 2

@@ -584,7 +584,7 @@
                 surfaceData.baseColor = float3(1.0, 1.0, 1.0);
                 surfaceData.normalWS = normal(pos + ray * t);
                 surfaceData.metallic = 0.0;
-                surfaceData.perceptualSmoothness = 0.2;
+                surfaceData.perceptualSmoothness = 0.8;
                 //surfaceData.baseColor = float3(t,t,t)*0.0000001;
                 //surfaceData.baseColor = input.positionRWS.rgb;
                 float3 n = surfaceData.normalWS;
@@ -649,7 +649,7 @@
             Name "ShadowCaster"
             Tags{ "LightMode" = "ShadowCaster" }
 
-            Cull[_CullMode]
+            Cull Off
 
             ZClip [_ZClip]
             ZWrite On
@@ -658,7 +658,7 @@
             ColorMask 0
 
             HLSLPROGRAM
-
+            #define VARYINGS_NEED_POSITION_WS
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
@@ -674,6 +674,7 @@
             {
                 VaryingsType varyingsType;
                 varyingsType.vmesh = VertMesh(inputMesh);
+                //varyingsType.vmesh.positionCS.z = 1.0;  // クリッピングを無効
                 return PackVaryingsType(varyingsType);
             }
 
@@ -742,7 +743,7 @@
                 return d;
             }
 
-            //#define _DEPTHOFFSET_ON
+            #define _DEPTHOFFSET_ON
             void Frag(  PackedVaryingsToPS packedInput
                         #ifdef WRITE_NORMAL_BUFFER
                         , out float4 outNormalBuffer : SV_Target0
@@ -778,9 +779,10 @@
                 BuiltinData builtinData;
                 GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-                float3 pos = input.positionRWS;
+                float3 pos = input.positionRWS;  // directional light
+                //pos = GetCurrentViewPosition();  // point light
                 //float3 pos = float3(0.0, 0.0, 0.0);
-                float3 ray = float3(1.0, 1.0, 1.0);
+                float3 ray = -GetWorldSpaceNormalizeViewDir(input.positionRWS);
 
                 float t = 0.0;
 
@@ -792,7 +794,7 @@
                     t += d;
                 }
 
-                float4 cp = mul(UNITY_MATRIX_VP, float4(input.positionRWS, 1.0));
+                float4 cp = TransformWorldToHClip(pos + ray * t);
                 float depth = cp.z / cp.w;
 
             #ifdef _DEPTHOFFSET_ON
@@ -803,13 +805,13 @@
                 EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), posInput.positionSS, outNormalBuffer);
                 #ifdef WRITE_MSAA_DEPTH
                 // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
-                depthColor = cp.z;
+                depthColor = depth;
                 #endif
             #elif defined(WRITE_MSAA_DEPTH) // When we are MSAA depth only without normal buffer
                 // Due to the binding order of these two render targets, we need to have them both declared
                 outNormalBuffer = float4(0.0, 0.0, 0.0, 1.0);
                 // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
-                depthColor = cp.z;
+                depthColor = depth;
             #elif defined(SCENESELECTIONPASS)
                 // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
                 outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);

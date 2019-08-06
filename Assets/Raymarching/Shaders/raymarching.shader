@@ -433,115 +433,11 @@
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
 
             #endif // TESSELLATION_ON
-            /*
-            struct SurfaceData
-            {
-                uint materialFeatures;
-                float3 baseColor;
-                float specularOcclusion;
-                float3 normalWS;
-                float perceptualSmoothness;
-                float ambientOcclusion;
-                float metallic;
-                float coatMask;
-                float3 specularColor;
-                uint diffusionProfileHash;
-                float subsurfaceMask;
-                float thickness;
-                float3 tangentWS;
-                float anisotropy;
-                float iridescenceThickness;
-                float iridescenceMask;
-                float3 geomNormalWS;
-                float ior;
-                float3 transmittanceColor;
-                float atDistance;
-                float transmittanceMask;
-            };
-            */
 
-            /*
-            struct BuiltinData
-            {
-                float opacity;
-                float3 bakeDiffuseLighting;
-                float3 backBakeDiffuseLighting;
-                float shadowMask0;
-                float shadowMask1;
-                float shadowMask2;
-                float shadowMask3;
-                float3 emissiveColor;
-                float2 motionVector;
-                float2 distortion;
-                float distortionBlur;
-                uint renderingLayers;
-                float depthOffset;
-            };
-            */
+            #include "Assets/Raymarching/Shaders/RaymarchingUtility.hlsl"
+            #include "Assets/Raymarching/Shaders/Menger.hlsl"
 
-
-            // IFSによるMengerSpongeの距離関数
-            float dMenger(float3 z0, float3 offset, float scale) {
-                float4 z = float4(z0, 1.0);
-                for (int n = 0; n < 4; n++) {
-                    z = abs(z);
-
-                    if (z.x < z.y) z.xy = z.yx;
-                    if (z.x < z.z) z.xz = z.zx;
-                    if (z.y < z.z) z.yz = z.zy;
-
-                    z *= scale;
-                    z.xyz -= offset * (scale - 1.0);
-
-                    if (z.z < -0.5 * offset.z * (scale - 1.0))
-                        z.z += offset.z * (scale - 1.0);
-                }
-                return (length(max(abs(z.xyz) - float3(1.0, 1.0, 1.0), 0.0)) - 0.05) / z.w;
-            }
-
-            // 2Dの回転行列の生成
-            float2x2 rotate(in float a) {
-                float s = sin(a), c = cos(a);
-                return float2x2(c, s, -s, c);
-            }
-
-            #define PI acos(-1.0)
-            #define PI2 (PI*2.0)
-            // 回転のfold
-            // https://www.shadertoy.com/view/Mlf3Wj
-            float2 foldRotate(in float2 p, in float s) {
-                float a = PI / s - atan2(p.x, p.y);
-                float n = PI2 / s;
-                a = floor(a / n) * n;
-                p = mul(rotate(a), p);
-                return p;
-            }
-
-            // 最終的な距離関数
-            inline float DistanceFunction(float3 pos) {
-                pos *= 2.0;
-                // 回転foldの適用
-                pos.yx = foldRotate(pos.yx, 4.0);
-
-                return dMenger(pos, float3(1.0, 1.0, 1.0), 3.0) / 2.0;
-            }
-
-            float map(float3 p) {
-                float d = DistanceFunction(p - UNITY_MATRIX_M._14_24_34);
-                return d;
-            }
-
-            float3 normal(float3 p) {
-                float2 e = float2(1.0, -1.0) * 0.0001;
-                return normalize(
-                    e.xyy * map(p + e.xyy) +
-                    e.yxy * map(p + e.yxy) +
-                    e.yyx * map(p + e.yyx) +
-                    e.xxx * map(p + e.xxx)
-                );
-            }
-
-            #define _DEPTHOFFSET_ON 1
+            #define _DEPTHOFFSET_ON
 
             void Frag(  PackedVaryingsToPS packedInput,
                         OUTPUT_GBUFFER(outGBuffer)
@@ -563,50 +459,23 @@
                 float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
             #endif
 
-                SurfaceData surfaceData;
-                BuiltinData builtinData;
-                GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
                 float3 pos = input.positionRWS;
                 float3 ray = normalize(pos);
                 pos = float3(0.0, 0.0, 0.0);
 
-                float t = 0.0;
+                DistanceFunctionSurfaceData surface = Trace(pos, ray, 1000000.0);
 
-                float d = 0.0;
-                for(int i = 0; i< 99; i++) {
-                    float3 p = pos + ray * t;
-                    // d = length(p - ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())._14_24_34) - 0.45;
-                    d = map(p);
-                    t += d;
-                }
+                SurfaceData surfaceData;
+                BuiltinData builtinData;
+                ToHDRPSurfaceAndBuiltinData(input, V, posInput, surface, surfaceData, builtinData);
 
-                surfaceData.baseColor = float3(1.0, 1.0, 1.0);
-                surfaceData.normalWS = normal(pos + ray * t);
-                surfaceData.metallic = 0.0;
-                surfaceData.perceptualSmoothness = 0.8;
-                //surfaceData.baseColor = float3(t,t,t)*0.0000001;
-                //surfaceData.baseColor = input.positionRWS.rgb;
-                float3 n = surfaceData.normalWS;
-                //float3 t = surfaceData.tangentWS;
-                //surfaceData = (SurfaceData)0;
-                //surfaceData.normalWS = n;
-                //surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
-                //surfaceData.metallic = 1.0;
-
-                GetBuiltinData(input, V, posInput, surfaceData, 0.0, float3(0.0, 0.0, 0.0), 0.0, builtinData);
-                //builtinData.emissiveColor = float3(10000.0, 100.0, 100.0);
-                //builtinData.emissiveColor = float3(100000., 100., 100.);
-
-                float4 cp = mul(UNITY_MATRIX_VP, float4(pos + ray * t, 1.0));
-                float depth = cp.z / cp.w;
+                float depth = WorldPosToDeviceDepth(surface.Position);
 
                 ENCODE_INTO_GBUFFER(surfaceData, builtinData, posInput.positionSS, outGBuffer);
 
             #ifdef _DEPTHOFFSET_ON
-                outputDepth = posInput.deviceDepth;
                 outputDepth = depth;
-                //outputDepth = 0.0;
             #endif
             }
 
@@ -691,57 +560,8 @@
 
             #endif // TESSELLATION_ON
 
-            // IFSによるMengerSpongeの距離関数
-            float dMenger(float3 z0, float3 offset, float scale) {
-                float4 z = float4(z0, 1.0);
-                for (int n = 0; n < 4; n++) {
-                    z = abs(z);
-
-                    if (z.x < z.y) z.xy = z.yx;
-                    if (z.x < z.z) z.xz = z.zx;
-                    if (z.y < z.z) z.yz = z.zy;
-
-                    z *= scale;
-                    z.xyz -= offset * (scale - 1.0);
-
-                    if (z.z < -0.5 * offset.z * (scale - 1.0))
-                        z.z += offset.z * (scale - 1.0);
-                }
-                return (length(max(abs(z.xyz) - float3(1.0, 1.0, 1.0), 0.0)) - 0.05) / z.w;
-            }
-
-            // 2Dの回転行列の生成
-            float2x2 rotate(in float a) {
-                float s = sin(a), c = cos(a);
-                return float2x2(c, s, -s, c);
-            }
-
-            #define PI acos(-1.0)
-            #define PI2 (PI*2.0)
-            // 回転のfold
-            // https://www.shadertoy.com/view/Mlf3Wj
-            float2 foldRotate(in float2 p, in float s) {
-                float a = PI / s - atan2(p.x, p.y);
-                float n = PI2 / s;
-                a = floor(a / n) * n;
-                p = mul(rotate(a), p);
-                return p;
-            }
-
-            // 最終的な距離関数
-            inline float DistanceFunction(float3 pos) {
-                pos *= 2.0;
-                // 回転foldの適用
-                pos.yx = foldRotate(pos.yx, 4.0);
-
-                return dMenger(pos, float3(1.0, 1.0, 1.0), 3.0) / 2.0;
-            }
-
-            float map(float3 p) {
-                float d = DistanceFunction(p - UNITY_MATRIX_M._14_24_34);
-                //float d = DistanceFunction(p);
-                return d;
-            }
+            #include "Assets/Raymarching/Shaders/RaymarchingUtility.hlsl"
+            #include "Assets/Raymarching/Shaders/Menger.hlsl"
 
             #define _DEPTHOFFSET_ON
             void Frag(  PackedVaryingsToPS packedInput
@@ -775,27 +595,14 @@
                 float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
             #endif
 
-                SurfaceData surfaceData;
-                BuiltinData builtinData;
-                GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
-
                 float3 pos = input.positionRWS;  // directional light
                 //pos = GetCurrentViewPosition();  // point light
                 //float3 pos = float3(0.0, 0.0, 0.0);
                 float3 ray = -GetWorldSpaceNormalizeViewDir(input.positionRWS);
 
-                float t = 0.0;
+                float t = TraceDepth(pos, ray, 100000.0);
 
-                float d = 0.0;
-                for(int i = 0; i< 99; i++) {
-                    float3 p = pos + ray * t;
-                    // d = length(p - ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())._14_24_34) - 0.45;
-                    d = map(p);
-                    t += d;
-                }
-
-                float4 cp = TransformWorldToHClip(pos + ray * t);
-                float depth = cp.z / cp.w;
+                float depth = WorldPosToDeviceDepth(pos + ray * t);
 
             #ifdef _DEPTHOFFSET_ON
                 outputDepth = depth;

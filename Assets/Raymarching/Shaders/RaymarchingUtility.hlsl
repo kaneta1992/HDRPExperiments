@@ -4,6 +4,7 @@
 struct DistanceFunctionSurfaceData {
     float3 Position;
     float3 Normal;
+    float3 BentNormal;
 
     float3 Albedo;
     float3 Emissive;
@@ -50,16 +51,14 @@ float3 normal(float3 p) {
     );
 }
 
-float ao(float3 p, float3 n, float aoDist, float aoScale) {
-    float dist = aoDist;
-    float occ = 1.0;
-    for (int i = 0; i < 8; ++i) {
-        occ = min(occ, map(p + dist * n) / dist);
-        dist *= aoScale;
+float ao(float3 p, float3 n, float dist) {
+    float occ = 0.0;
+    for (int i = 0; i < 16; ++i) {
+        float h = 0.001 + dist*pow(float(i)/15.0,2.0);
+        float oc = clamp(map( p + h*n )/h, -1.0, 1.0);
+        occ += oc;
     }
-    occ = 1.0 - occ;
-    occ = min(exp( -1.0 * occ ), 1.0);
-    return occ;
+    return occ / 16.0;
 }
 
 
@@ -93,7 +92,7 @@ void ToHDRPSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInput
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
     surfaceData.baseColor = surface.Albedo;
     surfaceData.metallic = surface.Metallic;
-    GetBuiltinData(input, V, posInput, surfaceData, 0.0, surface.Normal * surfaceData.specularOcclusion, 0.0, builtinData);
+    GetBuiltinData(input, V, posInput, surfaceData, 0.0, surface.BentNormal, 0.0, builtinData);
     builtinData.emissiveColor = surface.Emissive;
 }
 

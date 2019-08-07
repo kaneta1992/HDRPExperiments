@@ -27,8 +27,8 @@ DistanceFunctionSurfaceData getDistanceFunctionSurfaceData(float3 p) {
     DistanceFunctionSurfaceData surface = initDistanceFunctionSurfaceData();
     surface.Position = p;
     surface.Normal   = normal(p);
-    surface.Occlusion = 1.0 - ((1.0 - ao(p, surface.Normal, 0.005, 2.0))) * 1.0;
-    //surface.Occlusion = 0.3;
+    surface.Occlusion = ao(p, surface.Normal, 1.0);
+    surface.BentNormal = surface.Normal * surface.Occlusion; // nonsense
     surface.Albedo = float3(1.0, 1.0, 1.0);
     surface.Smoothness = 0.8;
     surface.Metallic = 0.0;

@@ -37,8 +37,17 @@ float distanceFunction(float3 p);
 DistanceFunctionSurfaceData getDistanceFunctionSurfaceData(float3 p);
 void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData);
 
+float3 getObjectScale() {
+    return float3(
+        length(UNITY_MATRIX_M._11_21_31),
+        length(UNITY_MATRIX_M._12_22_32),
+        length(UNITY_MATRIX_M._13_23_33)
+    );
+}
+
 float map(float3 p) {
-    return distanceFunction(p - UNITY_MATRIX_M._14_24_34);
+    float3 scale = getObjectScale();
+    return distanceFunction(TransformWorldToObject(p)) * min(scale.x, min(scale.y, scale.z));
 }
 
 float3 normal(float3 p) {
@@ -61,25 +70,66 @@ float ao(float3 p, float3 n, float dist) {
     return occ / 16.0;
 }
 
+bool clipSphere(float3 p, float offset) {
+    float d = length(TransformWorldToObject(p)) - (0.5 + offset);
+    if (d < 0.0) {
+        return false;
+    } else {
+        return true;
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float TraceDepth(float3 ro, float3 ray, float maxDepth) {
-    float t = 0.01;
+float3 GetRayOrigin(float3 positionRWS) {
+    float3 pos = float3(0.0, 0.0, 0.0);
+    if (clipSphere(float3(0.0, 0.0, 0.0), _ProjectionParams.y) > 0.0) {
+        //pos = positionRWS;
+    }
+    return pos;
+}
+
+float3 GetShadowRayOrigin(float3 positionRWS)
+{
+    float3 viewPos = GetCurrentViewPosition();
+    float3 pos = float3(0.0, 0.0, 0.0);
+
+    if (IsPerspectiveProjection())
+    {
+        // Perspective(Point or Spot Light?)
+        pos = viewPos;
+    }
+    else
+    {
+        // Orthographic(Directional Light?)
+        pos = positionRWS;  // fix me?
+    }
+
+    // シャドウはNearの情報をシェーダーに渡していないので固定値にする
+    float near = 0.1;
+    if (clipSphere(viewPos, near) > 0.0) {
+        //pos = positionRWS;
+    }
+
+    return pos;
+}
+
+float TraceDepth(float3 ro, float3 ray) {
+    float t = 0.0001;
+    float3 p;
     for(int i = 0; i< 64; i++) {
-        if (t > maxDepth) {
-            t = maxDepth;
-            break;
-        }
-        float3 p = ro + ray * t;
+        p = ro + ray * t;
         float d = map(p);
         if (d < 0.00001) break;
         t += d;
     }
+    if (clipSphere(p, 0.0)) {
+        discard;
+    }
     return t;
 }
 
-DistanceFunctionSurfaceData Trace(float3 ro, float3 ray, float maxDepth) {
-    float t = TraceDepth(ro, ray, maxDepth);
+DistanceFunctionSurfaceData Trace(float3 ro, float3 ray) {
+    float t = TraceDepth(ro, ray);
     return getDistanceFunctionSurfaceData(ray * t + ro);
 }
 

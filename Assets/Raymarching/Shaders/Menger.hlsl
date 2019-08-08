@@ -17,7 +17,7 @@ float dMenger(float3 z0, float3 offset, float scale) {
 }
 
 float distanceFunction(float3 p) {
-    float scale = 2.0;
+    float scale = 4.0;
     p *= scale;
     p.yx = pmod(p.yx, 4.0);
     return dMenger(p, float3(1.0, 1.0, 1.0), 3.0) / scale;

@@ -1,4 +1,4 @@
-﻿Shader "HDRP/Raymarching"
+﻿Shader "HDRP/MengerEmit"
 {
     Properties
     {
@@ -435,7 +435,7 @@
             #endif // TESSELLATION_ON
 
             #include "Assets/Raymarching/Shaders/RaymarchingUtility.hlsl"
-            #include "Assets/Raymarching/Shaders/Menger.hlsl"
+            #include "Assets/Raymarching/Shaders/MengerEmit/DF.hlsl"
 
             #define _DEPTHOFFSET_ON
 
@@ -561,7 +561,7 @@
             #endif // TESSELLATION_ON
 
             #include "Assets/Raymarching/Shaders/RaymarchingUtility.hlsl"
-            #include "Assets/Raymarching/Shaders/Menger.hlsl"
+            #include "Assets/Raymarching/Shaders/MengerEmit/DF.hlsl"
 
             #define _DEPTHOFFSET_ON
             void Frag(  PackedVaryingsToPS packedInput
@@ -701,7 +701,7 @@
             #endif // TESSELLATION_ON
 
             #include "Assets/Raymarching/Shaders/RaymarchingUtility.hlsl"
-            #include "Assets/Raymarching/Shaders/Menger.hlsl"
+            #include "Assets/Raymarching/Shaders/MengerEmit/DF.hlsl"
 
             #define _DEPTHOFFSET_ON
             void Frag(  PackedVaryingsToPS packedInput

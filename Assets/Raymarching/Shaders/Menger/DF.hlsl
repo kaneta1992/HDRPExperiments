@@ -28,7 +28,7 @@ DistanceFunctionSurfaceData getDistanceFunctionSurfaceData(float3 p) {
     DistanceFunctionSurfaceData surface = initDistanceFunctionSurfaceData();
     surface.Position = p;
     surface.Normal   = normal(p, 0.00001);
-    surface.Occlusion = ao(p, surface.Normal, 1.0);
+    surface.Occlusion = ao(p, surface.Normal, 1.0) * clamp(smoothstep(-40.0, -20.0, p.y + _WorldSpaceCameraPos.y), 0.3, 1.0);
     surface.BentNormal = surface.Normal * surface.Occlusion; // nonsense
     surface.Albedo = float3(1.0, 1.0, 1.0);
     surface.Smoothness = 0.8;

@@ -17,10 +17,10 @@ float dMenger(float3 z0, float3 offset, float scale) {
 }
 
 float distanceFunction(float3 p) {
-    float scale = 4.0;
+    float scale = 6.0;
     p *= scale;
-    p.yx = pmod(p.yx, 4.0);
-    return dMenger(p, float3(1.0, 1.0, 1.0), 3.0) / scale;
+    p.yx = pmod(p.yx, (sin(_Time.y) * 0.5 + 0.5) * 4.0 + 4.0);
+    return dMenger(p, float3((sin(_Time.y) * 0.5 + 0.5) + 1.0, (sin(_Time.y*0.7) * 0.5 + 0.5) + 1.0, (sin(_Time.y*0.4) * 0.5 + 0.5) + 1.0), 3.0) / scale;
 }
 
 DistanceFunctionSurfaceData getDistanceFunctionSurfaceData(float3 p) {
@@ -35,8 +35,8 @@ DistanceFunctionSurfaceData getDistanceFunctionSurfaceData(float3 p) {
     
     float t = frac(_Time.y);
     float3 pos = UNITY_MATRIX_M._14_24_34;
-    float len = abs(length(pos - p) - t) - 0.2;
+    float len = abs(length((pos - p) / getObjectScale()) - t) - 0.2;
     float edge = saturate( pow( length( surface.Normal - normal( surface.Position, 0.005 ) ) * 2.0, 2.0 ) );
-    surface.Emissive = float3(10000.0, 1000., 100.) * 16.0 * edge * clamp(len, 0.0, 1.0);
+    surface.Emissive = float3(10000.0, 1000., 100.) * 8.0 * edge * clamp(len, 0.0, 1.0);
     return surface;
 }

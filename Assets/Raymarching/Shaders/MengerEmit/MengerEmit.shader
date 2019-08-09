@@ -464,7 +464,7 @@
                 float3 ray = normalize(pos);
                 pos = float3(0.0, 0.0, 0.0);
 
-                DistanceFunctionSurfaceData surface = Trace(pos, ray);
+                DistanceFunctionSurfaceData surface = Trace(pos, ray, 64);
 
                 SurfaceData surfaceData;
                 BuiltinData builtinData;
@@ -600,7 +600,7 @@
                 //float3 pos = float3(0.0, 0.0, 0.0);
                 float3 ray = -GetWorldSpaceNormalizeViewDir(input.positionRWS);
 
-                float t = TraceDepth(pos, ray);
+                float t = TraceDepth(pos, ray, 64);
 
                 float depth = WorldPosToDeviceDepth(pos + ray * t);
 
@@ -741,7 +741,7 @@
                 float3 ray = normalize(pos);
                 pos = float3(0.0, 0.0, 0.0);
 
-                float t = TraceDepth(pos, ray);
+                float t = TraceDepth(pos, ray, 64);
 
                 pos = pos + ray * t;
 

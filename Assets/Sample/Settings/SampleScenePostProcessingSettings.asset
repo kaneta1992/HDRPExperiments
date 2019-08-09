@@ -16,7 +16,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   sampleCount:
     m_OverrideState: 1
-    m_Value: 8
+    m_Value: 32
     min: 2
   intensity:
     m_OverrideState: 1
@@ -393,7 +393,7 @@ MonoBehaviour:
     m_Value: {x: 0.5, y: 0.5}
   intensity:
     m_OverrideState: 1
-    m_Value: 0.35
+    m_Value: 0.4
     min: 0
     max: 1
   smoothness:
@@ -429,8 +429,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aaa3b8214f75b354e9ba2caadd022259, type: 3}
   m_Name: DepthOfField
   m_EditorClassIdentifier: 
-  active: 0
-  m_AdvancedMode: 1
+  active: 1
+  m_AdvancedMode: 0
   focusMode:
     m_OverrideState: 1
     m_Value: 2
@@ -444,15 +444,15 @@ MonoBehaviour:
     min: 0
   nearFocusEnd:
     m_OverrideState: 1
-    m_Value: 1.8
+    m_Value: 0
     min: 0
   farFocusStart:
     m_OverrideState: 1
-    m_Value: 3.58
+    m_Value: 100
     min: 0
   farFocusEnd:
     m_OverrideState: 1
-    m_Value: 7.84
+    m_Value: 300
     min: 0
   nearSampleCount:
     m_OverrideState: 0

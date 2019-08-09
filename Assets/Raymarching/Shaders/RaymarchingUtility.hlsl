@@ -80,6 +80,23 @@ bool clipSphere(float3 p, float offset) {
     }
 }
 
+ float mod(float x, float y)
+ {
+ 	return x - y * floor(x / y);
+ }
+ float2 mod(float2 x, float2 y)
+ {
+ 	return x - y * floor(x / y);
+ }
+ float3 mod(float3 x, float3 y)
+ {
+ 	return x - y * floor(x / y);
+ }
+ float4 mod(float4 x, float4 y)
+ {
+ 	return x - y * floor(x / y);
+ }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 float3 GetRayOrigin(float3 positionRWS) {
     float3 pos = float3(0.0, 0.0, 0.0);
@@ -114,10 +131,10 @@ float3 GetShadowRayOrigin(float3 positionRWS)
     return pos;
 }
 
-float TraceDepth(float3 ro, float3 ray) {
+float TraceDepth(float3 ro, float3 ray, int ite) {
     float t = 0.0001;
     float3 p;
-    for(int i = 0; i< 99; i++) {
+    for(int i = 0; i< ite; i++) {
         p = ro + ray * t;
         float d = map(p);
         if (d < 0.00001) break;
@@ -129,8 +146,8 @@ float TraceDepth(float3 ro, float3 ray) {
     return t;
 }
 
-DistanceFunctionSurfaceData Trace(float3 ro, float3 ray) {
-    float t = TraceDepth(ro, ray);
+DistanceFunctionSurfaceData Trace(float3 ro, float3 ray, int ite) {
+    float t = TraceDepth(ro, ray, ite);
     return getDistanceFunctionSurfaceData(ray * t + ro);
 }
 
@@ -143,6 +160,8 @@ void ToHDRPSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInput
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
     surfaceData.baseColor = surface.Albedo;
     surfaceData.metallic = surface.Metallic;
+    input.positionRWS = surface.Position;
+    posInput.positionWS = surface.Position;
     GetBuiltinData(input, V, posInput, surfaceData, 0.0, surface.BentNormal, 0.0, builtinData);
     builtinData.emissiveColor = surface.Emissive;
 }

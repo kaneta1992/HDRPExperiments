@@ -1,4 +1,4 @@
-﻿Shader "HDRP/Menger"
+﻿Shader "HDRP/Field"
 {
     Properties
     {
@@ -435,7 +435,7 @@
             #endif // TESSELLATION_ON
 
             #include "Assets/Raymarching/Shaders/RaymarchingUtility.hlsl"
-            #include "Assets/Raymarching/Shaders/Menger/DF.hlsl"
+            #include "Assets/Raymarching/Shaders/Field/DF.hlsl"
 
             #define _DEPTHOFFSET_ON
 
@@ -464,7 +464,7 @@
                 float3 ray = normalize(pos);
                 pos = float3(0.0, 0.0, 0.0);
 
-                DistanceFunctionSurfaceData surface = Trace(pos, ray, 128);
+                DistanceFunctionSurfaceData surface = Trace(pos, ray, 300);
 
                 SurfaceData surfaceData;
                 BuiltinData builtinData;
@@ -561,7 +561,7 @@
             #endif // TESSELLATION_ON
 
             #include "Assets/Raymarching/Shaders/RaymarchingUtility.hlsl"
-            #include "Assets/Raymarching/Shaders/Menger/DF.hlsl"
+            #include "Assets/Raymarching/Shaders/Field/DF.hlsl"
 
             #define _DEPTHOFFSET_ON
             void Frag(  PackedVaryingsToPS packedInput
@@ -701,7 +701,7 @@
             #endif // TESSELLATION_ON
 
             #include "Assets/Raymarching/Shaders/RaymarchingUtility.hlsl"
-            #include "Assets/Raymarching/Shaders/Menger/DF.hlsl"
+            #include "Assets/Raymarching/Shaders/Field/DF.hlsl"
 
             #define _DEPTHOFFSET_ON
             void Frag(  PackedVaryingsToPS packedInput

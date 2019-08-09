@@ -45,31 +45,19 @@ float3 getObjectScale() {
     );
 }
 
-float3x3 normalizedRotateMatrix() {
-    float3x3 m;
-    m._11_12_13 = normalize(UNITY_MATRIX_M._11_21_31);
-    m._21_22_23 = normalize(UNITY_MATRIX_M._12_22_32);
-    m._31_32_33 = normalize(UNITY_MATRIX_M._13_23_33);
-    return m;
-}
-
 float map(float3 p) {
     float3 scale = getObjectScale();
     return distanceFunction(TransformWorldToObject(p)) * min(scale.x, min(scale.y, scale.z));
-}
-
-float map2(float3 p) {
-    return distanceFunction(p);
 }
 
 float3 normal(float3 p, float eps) {
     p = TransformWorldToObject(p);
     float2 e = float2(1.0, -1.0) * eps;
     return TransformObjectToWorldDir(normalize(
-        e.xyy * map2(p + e.xyy) +
-        e.yxy * map2(p + e.yxy) +
-        e.yyx * map2(p + e.yyx) +
-        e.xxx * map2(p + e.xxx)
+        e.xyy * distanceFunction(p + e.xyy) +
+        e.yxy * distanceFunction(p + e.yxy) +
+        e.yyx * distanceFunction(p + e.yyx) +
+        e.xxx * distanceFunction(p + e.xxx)
     ));
 }
 
@@ -129,7 +117,7 @@ float3 GetShadowRayOrigin(float3 positionRWS)
 float TraceDepth(float3 ro, float3 ray) {
     float t = 0.0001;
     float3 p;
-    for(int i = 0; i< 64; i++) {
+    for(int i = 0; i< 99; i++) {
         p = ro + ray * t;
         float d = map(p);
         if (d < 0.00001) break;

@@ -30,10 +30,13 @@ DistanceFunctionSurfaceData getDistanceFunctionSurfaceData(float3 p) {
     surface.Occlusion = ao(p, surface.Normal, 1.0);
     surface.BentNormal = surface.Normal * surface.Occlusion; // nonsense
     surface.Albedo = float3(1.0, 1.0, 1.0);
-    surface.Smoothness = 0.8;
+    surface.Smoothness = 0.6;
     surface.Metallic = 0.0;
     
-    float edge = saturate( pow( length( surface.Normal - normal( surface.Position, 0.002 ) ) * 2.0, 2.0 ) );
-    surface.Emissive = float3(10000.0, 1000., 100.) * 4.0 * edge;
+    float t = frac(_Time.y);
+    float3 pos = UNITY_MATRIX_M._14_24_34;
+    float len = abs(length(pos - p) - t) - 0.2;
+    float edge = saturate( pow( length( surface.Normal - normal( surface.Position, 0.005 ) ) * 2.0, 2.0 ) );
+    surface.Emissive = float3(10000.0, 1000., 100.) * 16.0 * edge * clamp(len, 0.0, 1.0);
     return surface;
 }

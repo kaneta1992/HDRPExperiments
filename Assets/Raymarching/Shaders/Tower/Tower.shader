@@ -1,4 +1,4 @@
-﻿Shader "HDRP/Menger"
+﻿Shader "HDRP/Tower"
 {
     Properties
     {
@@ -435,7 +435,7 @@
             #endif // TESSELLATION_ON
 
             #include "Assets/Raymarching/Shaders/RaymarchingUtility.hlsl"
-            #include "Assets/Raymarching/Shaders/Menger/DF.hlsl"
+            #include "Assets/Raymarching/Shaders/Tower/DF.hlsl"
 
             #define _DEPTHOFFSET_ON
 
@@ -543,7 +543,7 @@
             {
                 VaryingsType varyingsType;
                 varyingsType.vmesh = VertMesh(inputMesh);
-                //varyingsType.vmesh.positionCS.z = 1.0;  // クリッピングを無効
+                varyingsType.vmesh.positionCS.z = 0.0;
                 return PackVaryingsType(varyingsType);
             }
 
@@ -561,7 +561,7 @@
             #endif // TESSELLATION_ON
 
             #include "Assets/Raymarching/Shaders/RaymarchingUtility.hlsl"
-            #include "Assets/Raymarching/Shaders/Menger/DF.hlsl"
+            #include "Assets/Raymarching/Shaders/Tower/DF.hlsl"
 
             #define _DEPTHOFFSET_ON
             void Frag(  PackedVaryingsToPS packedInput
@@ -595,7 +595,7 @@
                 float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
             #endif
 
-                float3 pos = input.positionRWS;  // directional light
+                float3 pos = GetShadowRayOrigin(input.positionRWS);  // directional light
                 //pos = GetCurrentViewPosition();  // point light
                 //float3 pos = float3(0.0, 0.0, 0.0);
                 float3 ray = -GetWorldSpaceNormalizeViewDir(input.positionRWS);
@@ -701,7 +701,7 @@
             #endif // TESSELLATION_ON
 
             #include "Assets/Raymarching/Shaders/RaymarchingUtility.hlsl"
-            #include "Assets/Raymarching/Shaders/Menger/DF.hlsl"
+            #include "Assets/Raymarching/Shaders/Tower/DF.hlsl"
 
             #define _DEPTHOFFSET_ON
             void Frag(  PackedVaryingsToPS packedInput

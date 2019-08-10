@@ -35,7 +35,7 @@ DistanceFunctionSurfaceData getDistanceFunctionSurfaceData(float3 p) {
     DistanceFunctionSurfaceData surface = initDistanceFunctionSurfaceData();
     surface.Position = p;
     surface.Normal   = normal(p, 0.000001);
-    surface.Occlusion = ao(p, surface.Normal, 1.0);// * clamp((p.y + _WorldSpaceCameraPos.y + 50) * 0.01, 0.0, 1.0);
+    surface.Occlusion = ao(p, surface.Normal, 1.0) * smoothstep(-60.0, -40.0, p.y + _WorldSpaceCameraPos.y);// * clamp((p.y + _WorldSpaceCameraPos.y + 50) * 0.01, 0.0, 1.0);
     surface.BentNormal = surface.Normal * surface.Occlusion; // nonsense
     surface.Albedo = lerp(float3(1.0, 1.0, 1.0), float3(0.7, 0.1, 0.05), clamp((-p.y - _WorldSpaceCameraPos.y - 23) * 0.1, 0.0, 1.0));
     surface.Smoothness = lerp(0.4, 0.8, clamp((-p.y - _WorldSpaceCameraPos.y - 23) * 0.1, 0.0, 1.0));
